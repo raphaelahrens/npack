@@ -32,7 +32,7 @@ lazy_static! {
         .map(PathBuf::from)
         .unwrap_or_else(|_| {
             let home = dirs::home_dir().expect("No home directory found");
-            home.join(".vim")
+            home.join(".config").join("nvim")
         });
     static ref PACK_DIR: PathBuf = (*BASE_DIR).join("pack");
     static ref PACK_CONFIG_DIR: PathBuf = (*BASE_DIR).join(".pack");
