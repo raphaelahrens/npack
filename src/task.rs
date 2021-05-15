@@ -214,7 +214,7 @@ fn helptags() {
 
 fn setup_signal() -> io::Result<Receiver<()>> {
     let (s, r) = bounded(10);
-    let signals = Signals::new(&[signal_hook::SIGTERM, signal_hook::SIGINT])?;
+    let mut signals = Signals::new(&[signal_hook::consts::SIGTERM, signal_hook::consts::SIGINT])?;
 
     thread::spawn(move || {
         for _ in signals.forever() {
