@@ -15,8 +15,8 @@ struct UpdateArgs {
 impl UpdateArgs {
     fn from_matches(m: &ArgMatches) -> UpdateArgs {
         UpdateArgs {
-            plugins: m.values_of_lossy("package").unwrap_or_else(|| vec![]),
-            skip: m.values_of_lossy("skip").unwrap_or_else(|| vec![]),
+            plugins: m.values_of_lossy("package").unwrap_or_else(Vec::new),
+            skip: m.values_of_lossy("skip").unwrap_or_else(Vec::new),
             threads: value_t!(m, "threads", usize).ok(),
             packfile: m.is_present("packfile"),
         }

@@ -23,7 +23,7 @@ struct InstallArgs {
 impl InstallArgs {
     fn from_matches(m: &ArgMatches) -> InstallArgs {
         InstallArgs {
-            plugins: m.values_of_lossy("package").unwrap_or_else(|| vec![]),
+            plugins: m.values_of_lossy("package").unwrap_or_else(Vec::new),
             local: m.is_present("local"),
             on: value_t!(m, "on", String).ok(),
             for_: value_t!(m, "for", String).ok(),

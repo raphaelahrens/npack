@@ -28,7 +28,7 @@ pub struct TaskManager {
 impl TaskManager {
     pub fn new(task_type: TaskType, thread_num: usize) -> TaskManager {
         TaskManager {
-            task_type: task_type,
+            task_type,
             packs: Vec::new(),
             thread_num,
         }
@@ -217,9 +217,8 @@ fn setup_signal() -> io::Result<Receiver<()>> {
     let mut signals = Signals::new(&[signal_hook::consts::SIGTERM, signal_hook::consts::SIGINT])?;
 
     thread::spawn(move || {
-        for _ in signals.forever() {
+        if signals.forever().next().is_some() {
             drop(s);
-            return;
         }
     });
     Ok(r)

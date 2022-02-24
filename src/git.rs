@@ -11,7 +11,7 @@ fn github_url(name: &str) -> String {
 }
 
 fn fetch(repo: &Repository, name: &str) -> Result<()> {
-    let url = github_url(&name);
+    let url = github_url(name);
 
     let mut opts = git2::FetchOptions::new();
     opts.download_tags(git2::AutotagOption::All)
@@ -24,12 +24,12 @@ fn fetch(repo: &Repository, name: &str) -> Result<()> {
 }
 
 fn sync_repo(repo: &Repository, name: &str) -> Result<()> {
-    fetch(&repo, name)?;
+    fetch(repo, name)?;
     let reference = "HEAD";
     let oid = repo.refname_to_id(reference)?;
     let object = repo.find_object(oid, None)?;
     repo.reset(&object, git2::ResetType::Hard, None)?;
-    update_submodules(&repo)?;
+    update_submodules(repo)?;
     Ok(())
 }
 

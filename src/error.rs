@@ -2,8 +2,6 @@ use std::io;
 use std::path::Path;
 use std::result::Result as StdResult;
 
-use git2;
-use walkdir;
 use thiserror::Error as ThisError;
 
 pub type Result<T> = StdResult<T, Error>;

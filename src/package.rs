@@ -156,8 +156,7 @@ impl Package {
         Path::new(&self.name)
             .file_name()
             .iter()
-            .filter_map(|e| e.to_str())
-            .next()
+            .find_map(|e| e.to_str())
             .unwrap_or("")
     }
 
@@ -193,8 +192,8 @@ impl Package {
         let mut info: Vec<&str> = self.name.splitn(2, '/').collect();
         info.reverse();
 
-        let repo = info.iter().next().unwrap_or(&"");
-        let user = info.iter().next().unwrap_or(&"");
+        let repo = info.get(0).unwrap_or(&"");
+        let user = info.get(0).unwrap_or(&"");
 
         (user, repo)
     }
@@ -345,16 +344,14 @@ where
     if !dir.is_dir() {
         return Ok(());
     }
-    for entry in dir.read_dir()? {
-        if let Ok(e) = entry {
-            let sub = e.path();
-            let item = match sub.file_name().iter().flat_map(|s| s.to_str()).next() {
-                None => continue,
-                Some(i) => i.to_string(),
-            };
-            if sub.is_dir() && !item.starts_with('.') {
-                action(&sub, item)?;
-            }
+    for entry in (dir.read_dir()?).flatten() {
+        let sub = entry.path();
+        let item = match sub.file_name().iter().flat_map(|s| s.to_str()).next() {
+            None => continue,
+            Some(i) => i.to_string(),
+        };
+        if sub.is_dir() && !item.starts_with('.') {
+            action(&sub, item)?;
         }
     }
     Ok(())
