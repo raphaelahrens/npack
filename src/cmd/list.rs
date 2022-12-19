@@ -1,36 +1,9 @@
 use crate::package::{self, Package};
 use crate::Result;
 
-use clap::{value_t, ArgMatches};
+use crate::cli::List;
 
-#[derive(Debug)]
-struct ListArgs {
-    start: bool,
-    opt: bool,
-    detached: bool,
-    category: Option<String>,
-}
-
-impl ListArgs {
-    fn from_matches(m: &ArgMatches) -> ListArgs {
-        ListArgs {
-            start: m.is_present("start"),
-            opt: m.is_present("opt"),
-            detached: m.is_present("detached"),
-            category: value_t!(m, "category", String).ok(),
-        }
-    }
-}
-
-pub fn exec(matches: &ArgMatches) {
-    let args = ListArgs::from_matches(matches);
-
-    if let Err(e) = list_packages(args) {
-        die!("Err: {}", e);
-    }
-}
-
-fn list_packages(args: ListArgs) -> Result<()> {
+pub fn list_packages(args: List) -> Result<()> {
     let f = if args.detached {
         list_detached
     } else {

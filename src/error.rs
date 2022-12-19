@@ -36,6 +36,8 @@ pub enum Error {
     SaveYaml(#[from] yaml_rust::EmitError),
     #[error("")]
     LoadYaml(#[from] yaml_rust::ScanError),
+    #[error("error executing as task")]
+    TaskError(#[from] crate::task::TaskError),
 }
 
 impl Error {

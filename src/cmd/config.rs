@@ -2,37 +2,14 @@ use crate::package;
 use crate::utils;
 use crate::{Error, Result};
 
-use clap::{value_t, ArgMatches};
+use crate::cli::Config;
 use std::fs;
 use std::io::ErrorKind;
 
-#[derive(Debug)]
-struct ConfigArgs {
-    plugin: String,
-    delete: bool,
-}
-
-impl ConfigArgs {
-    fn from_matches(m: &ArgMatches) -> ConfigArgs {
-        ConfigArgs {
-            plugin: value_t!(m, "package", String).unwrap_or_default(),
-            delete: m.is_present("delete"),
-        }
-    }
-}
-
-pub fn exec(matches: &ArgMatches) {
-    let args = ConfigArgs::from_matches(matches);
-
-    if let Err(e) = config_plugin(&args.plugin, args.delete) {
-        die!("{}", e);
-    }
-}
-
-fn config_plugin(name: &str, delete: bool) -> Result<()> {
+pub fn config(args: Config) -> Result<()> {
     let packs = package::fetch()?;
-    let temp_pack = package::Package::new(name, "temp", true);
-    let pack = packs.iter().find(|x| name == x.name).unwrap_or(&temp_pack);
+    let temp_pack = package::Package::new(&args.package, "temp", true);
+    let pack = packs.iter().find(|x| args.package == x.name).unwrap_or(&temp_pack);
 
     let path = pack.config_path();
 
@@ -47,7 +24,7 @@ fn config_plugin(name: &str, delete: bool) -> Result<()> {
         Ok(meta) => Some(meta.modified()?),
     };
 
-    if modified.is_some() && delete {
+    if modified.is_some() && args.delete {
         fs::remove_file(&path)?;
         return Ok(());
     }

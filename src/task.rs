@@ -2,7 +2,6 @@ use crate::echo;
 use crate::package::Package;
 use crate::utils::Spinner;
 use crate::Error;
-use crate::Result;
 
 use crossbeam_channel::{bounded, select, Receiver};
 use crossbeam_utils::sync::WaitGroup;
@@ -13,6 +12,17 @@ use std::process;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use termion::{color, terminal_size};
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum TaskError {
+    #[error("No plugins to sync")]
+    NoPlugins,
+    #[error("Terminal error")]
+    TerminalError(#[from] std::io::Error),
+    #[error("Fail to get terminal size.")]
+    TerminalToSmall,
+}
 
 pub enum TaskType {
     Install,
@@ -41,7 +51,7 @@ impl TaskManager {
     /// returns true on success otherwise false
     fn update<F>(pack: &Package, line: u16, func: F) -> bool
     where
-        F: Fn(&Package) -> (Result<()>, bool),
+        F: Fn(&Package) -> (Result<(), Error>, bool),
     {
         let msg = format!(" [{}]", &pack.name);
         let pos = msg.len() as u16;
@@ -81,27 +91,21 @@ impl TaskManager {
         successful
     }
 
-    pub fn run<F>(self, func: F) -> Vec<String>
+    pub fn run<F>(self, func: F) -> Result<Vec<String>, TaskError>
     where
-        F: Fn(&Package) -> (Result<()>, bool) + Send + 'static + Copy,
+        F: Fn(&Package) -> (Result<(), Error>, bool) + Send + 'static + Copy,
     {
         if self.packs.is_empty() {
-            die!("No plugins to sync");
+            return Err(TaskError::NoPlugins);
         }
 
-        let y = match terminal_size() {
-            Err(e) => die!("Fail to get terminal size. {}", e),
-            Ok((_, y)) => y,
-        };
+        let (y, _x) = terminal_size()?;
 
         if y <= 2 {
-            die!("Terminal size too small.");
+            return Err(TaskError::TerminalToSmall);
         }
 
-        let quit_notifier = match setup_signal() {
-            Err(e) => die!("Fail to set up signal. {}", e),
-            Ok(r) => r,
-        };
+        let quit_notifier = setup_signal()?;
 
         let threads = self.thread_num;
 
@@ -183,7 +187,7 @@ impl TaskManager {
         }
 
         let failures = failures.lock().unwrap();
-        failures.clone()
+        Ok(failures.clone())
     }
 }
 
@@ -214,7 +218,7 @@ fn helptags() {
 
 fn setup_signal() -> io::Result<Receiver<()>> {
     let (s, r) = bounded(10);
-    let mut signals = Signals::new(&[signal_hook::consts::SIGTERM, signal_hook::consts::SIGINT])?;
+    let mut signals = Signals::new([signal_hook::consts::SIGTERM, signal_hook::consts::SIGINT])?;
 
     thread::spawn(move || {
         if signals.forever().next().is_some() {

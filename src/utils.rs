@@ -14,14 +14,6 @@ use walkdir::WalkDir;
 const SPINNER_CHARS: [char; 10] = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 const DEFAULT_EDITOR: &str = "vi";
 
-macro_rules! die {
-    ($($arg:tt)*) => ({
-        use std::io::Write;
-        (writeln!(&mut ::std::io::stderr(), $($arg)*)).expect("stderr");
-        ::std::process::exit(1)
-    })
-}
-
 pub struct Spinner {
     tx: Sender<bool>,
     handle: thread::JoinHandle<()>,

@@ -1,39 +1,31 @@
-use clap::ArgMatches;
 use std::env;
-use std::io;
+use clap::Parser;
+use pack::cli;
+use pack::cmd;
 
-#[macro_use]
-mod utils;
+use color_eyre::eyre::Result;
 
-mod cli;
-mod cmd;
-mod echo;
-mod error;
-mod git;
-mod package;
-mod task;
-
-pub use error::{Error, Result};
-
-fn main() {
+fn main() -> Result<()>{
     let _ = env::var("PACK_LOG_FILE").map(|x| {
         simple_logging::log_to_file(x, log::LevelFilter::Info).expect("fail to init logging");
     });
 
-    let app_m = cli::build_cli().get_matches();
-
-    match app_m.subcommand() {
-        ("list", Some(m)) => cmd::list::exec(m),
-        ("install", Some(m)) => cmd::install::exec(m),
-        ("uninstall", Some(m)) => cmd::uninstall::exec(m),
-        ("config", Some(m)) => cmd::config::exec(m),
-        ("move", Some(m)) => cmd::move_cmd::exec(m),
-        ("update", Some(m)) => cmd::update::exec(m),
-        ("generate", Some(m)) => cmd::generate::exec(m),
-        ("completions", Some(m)) => {
-            let shell = m.value_of("SHELL").unwrap();
-            cli::build_cli().gen_completions_to("pack", shell.parse().unwrap(), &mut io::stdout());
+    let app_m = cli::CliArgs::parse();
+    let cmd = app_m.cmd;
+    match cmd {
+        cli::Command::List(args) => cmd::list::list_packages(args),
+        cli::Command::Install(args)=> cmd::install::install_plugins(args),
+        cli::Command::Uninstall(args)=> cmd::uninstall::exec(args),
+        cli::Command::Config(args) => cmd::config::config(args),
+        cli::Command::Move(args) => cmd::move_cmd::move_plugin(args),
+        cli::Command::Update(args) => cmd::update::exec(args),
+        cli::Command::Generate => cmd::generate::update_packfile(),
+        cli::Command::Completions(_args) => {
+            // TODO
+            //let shell = m.value_of("SHELL").unwrap();
+            // cli::build_cli().gen_completions_to("pack", shell.parse().unwrap(), &mut io::stdout());
+            Ok(())
         }
-        _ => cmd::list::exec(&ArgMatches::default()),
-    }
+    }?;
+    Ok(())
 }

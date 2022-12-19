@@ -178,7 +178,7 @@ impl Package {
         let name = if self.local {
             self.basename().to_string()
         } else {
-            self.name.replace("/", "-")
+            self.name.replace('/', "-")
         };
         let fname = if name.ends_with(".vim") {
             name
@@ -192,8 +192,8 @@ impl Package {
         let mut info: Vec<&str> = self.name.splitn(2, '/').collect();
         info.reverse();
 
-        let repo = info.get(0).unwrap_or(&"");
-        let user = info.get(0).unwrap_or(&"");
+        let repo = info.first().unwrap_or(&"");
+        let user = info.first().unwrap_or(&"");
 
         (user, repo)
     }

@@ -1,30 +1,12 @@
 use crate::package::{self, Package};
 use crate::Result;
 
-use clap::ArgMatches;
 use std::fs;
 
-#[derive(Debug)]
-struct UninstallArgs {
-    plugins: Vec<String>,
-    all: bool,
-}
+use crate::cli::Uninstall;
 
-impl UninstallArgs {
-    fn from_matches(m: &ArgMatches) -> UninstallArgs {
-        UninstallArgs {
-            plugins: m.values_of_lossy("package").unwrap_or_else(Vec::new),
-            all: m.is_present("all"),
-        }
-    }
-}
-
-pub fn exec(matches: &ArgMatches) {
-    let args = UninstallArgs::from_matches(matches);
-
-    if let Err(e) = uninstall_plugins(&args.plugins, args.all) {
-        die!("{}", e);
-    }
+pub fn exec(args: Uninstall) -> Result<()>{
+    uninstall_plugins(&args.package, args.all)
 }
 
 fn uninstall_plugins(plugins: &[String], all: bool) -> Result<()> {

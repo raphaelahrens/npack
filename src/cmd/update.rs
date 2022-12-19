@@ -1,46 +1,18 @@
 use crate::git;
 use crate::package::{self, Package};
 use crate::task::{TaskManager, TaskType};
+use crate::cli::Update;
 use crate::{Error, Result};
-use clap::{value_t, ArgMatches};
 
-#[derive(Debug)]
-struct UpdateArgs {
-    plugins: Vec<String>,
-    skip: Vec<String>,
-    threads: Option<usize>,
-    packfile: bool,
-}
-
-impl UpdateArgs {
-    fn from_matches(m: &ArgMatches) -> UpdateArgs {
-        UpdateArgs {
-            plugins: m.values_of_lossy("package").unwrap_or_else(Vec::new),
-            skip: m.values_of_lossy("skip").unwrap_or_else(Vec::new),
-            threads: value_t!(m, "threads", usize).ok(),
-            packfile: m.is_present("packfile"),
-        }
-    }
-}
-
-pub fn exec(matches: &ArgMatches) {
-    let args = UpdateArgs::from_matches(matches);
+pub fn exec(args: Update) -> Result<()>{
 
     if args.packfile {
-        if let Err(e) = update_packfile() {
-            die!("Err: {}", e);
-        }
-        return;
+        return update_packfile();
     }
 
     let threads = args.threads.unwrap_or_else(num_cpus::get);
-    if threads < 1 {
-        die!("Threads should be greater than 0");
-    }
 
-    if let Err(e) = update_plugins(&args.plugins, threads, &args.skip) {
-        die!("Err: {}", e);
-    }
+    update_plugins(&args.package, threads, &args.skip)
 }
 
 fn update_packfile() -> Result<()> {
@@ -71,7 +43,7 @@ fn update_plugins(plugins: &[String], threads: usize, skip: &[String]) -> Result
         }
     }
 
-    for fail in manager.run(update_plugin) {
+    for fail in manager.run(update_plugin)? {
         packs.retain(|e| e.name != fail);
     }
 

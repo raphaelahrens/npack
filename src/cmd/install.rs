@@ -3,37 +3,9 @@ use crate::package::{self, Package};
 use crate::task::{TaskManager, TaskType};
 use crate::{Error, Result};
 
-use clap::{value_t, ArgMatches};
 use num_cpus;
 use std::os::unix::fs::symlink;
 use std::path::Path;
-
-#[derive(Debug)]
-struct InstallArgs {
-    plugins: Vec<String>,
-    local: bool,
-    on: Option<String>,
-    for_: Option<String>,
-    threads: Option<usize>,
-    opt: bool,
-    category: String,
-    build: Option<String>,
-}
-
-impl InstallArgs {
-    fn from_matches(m: &ArgMatches) -> InstallArgs {
-        InstallArgs {
-            plugins: m.values_of_lossy("package").unwrap_or_else(Vec::new),
-            local: m.is_present("local"),
-            on: value_t!(m, "on", String).ok(),
-            for_: value_t!(m, "for", String).ok(),
-            threads: value_t!(m, "threads", usize).ok(),
-            opt: m.is_present("opt"),
-            category: value_t!(m, "category", String).unwrap_or_default(),
-            build: value_t!(m, "build", String).ok(),
-        }
-    }
-}
 
 struct Plugins {
     names: Vec<String>,
@@ -46,17 +18,8 @@ struct Plugins {
     local: bool,
 }
 
-pub fn exec(matches: &ArgMatches) {
-    let args = InstallArgs::from_matches(matches);
-
-    let threads = match args.threads {
-        Some(t) => t,
-        _ => num_cpus::get(),
-    };
-
-    if threads < 1 {
-        die!("Threads should be greater than 0");
-    }
+pub fn install_plugins(args: crate::cli::Install) -> Result<()> {
+    let threads = args.threads.unwrap_or_else(num_cpus::get);
 
     let opt = args.on.is_some() || args.for_.is_some() || args.opt;
     let types = args
@@ -64,7 +27,7 @@ pub fn exec(matches: &ArgMatches) {
         .map(|e| e.split(',').map(|e| e.to_string()).collect::<Vec<String>>());
 
     let plugins = Plugins {
-        names: args.plugins,
+        names: args.package,
         category: args.category,
         opt,
         on: args.on,
@@ -73,13 +36,6 @@ pub fn exec(matches: &ArgMatches) {
         threads,
         local: args.local,
     };
-
-    if let Err(e) = install_plugins(&plugins) {
-        die!("Err: {}", e);
-    }
-}
-
-fn install_plugins(plugins: &Plugins) -> Result<()> {
     let mut packs = package::fetch()?;
     {
         let mut manager = TaskManager::new(TaskType::Install, plugins.threads);
@@ -132,7 +88,7 @@ fn install_plugins(plugins: &Plugins) -> Result<()> {
             }
         }
 
-        for fail in manager.run(install_plugin) {
+        for fail in manager.run(install_plugin)? {
             packs.retain(|e| e.name != fail);
         }
     }
@@ -162,7 +118,7 @@ fn do_install(pack: &Package) -> Result<()> {
         if !src.is_dir() {
             Err(Error::NoPlugin)
         } else {
-            symlink(&src, &path)?;
+            symlink(src, &path)?;
             Ok(())
         }
     } else {

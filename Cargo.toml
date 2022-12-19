@@ -1,6 +1,6 @@
 [package]
 name = "pack"
-version = "0.2.7"
+version = "0.2.8"
 authors = ["maralla <maralla.ai@gmail.com>"]
 edition = "2018"
 
@@ -10,7 +10,7 @@ yaml-rust = "0.4"
 walkdir = "2"
 termion = "2.0"
 num_cpus = "1.0"
-clap = "2.34"
+clap = { version = "4.0", features = ["derive"] }
 dirs = "4.0"
 signal-hook = "0.3"
 libc = "0.2"
@@ -19,6 +19,7 @@ crossbeam-utils = "0.8"
 simple-logging = "2.0.2"
 log = "0.4.17"
 thiserror = "1.0"
+color-eyre = "0.6"
 
 [dependencies.git2]
 version = "0.15"
