@@ -21,6 +21,6 @@ log = "0.4.17"
 thiserror = "1.0"
 
 [dependencies.git2]
-version = "0.15"
+version = "0.16"
 default-features = false
 features = ["ssh", "https"]
