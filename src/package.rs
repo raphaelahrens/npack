@@ -167,11 +167,12 @@ impl Package {
             let (_, repo) = self.repo();
             repo
         };
-        if self.opt {
-            PACK_DIR.join(&self.category).join("opt").join(repo)
+        let folder = if self.opt {
+            "opt"
         } else {
-            PACK_DIR.join(&self.category).join("start").join(repo)
-        }
+            "start"
+        };
+        PACK_DIR.join(&self.category).join(folder).join(repo)
     }
 
     pub fn config_path(&self) -> PathBuf {

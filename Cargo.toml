@@ -5,23 +5,23 @@ authors = ["maralla <maralla.ai@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-lazy_static = "1.4.0"
+lazy_static = "1.4"
 yaml-rust = "0.4"
 walkdir = "2"
 termion = "2.0"
 num_cpus = "1.0"
-clap = { version = "4.0", features = ["derive"] }
-dirs = "4.0"
+clap = { version = "4.2", features = ["derive"] }
+dirs = "5.0"
 signal-hook = "0.3"
 libc = "0.2"
 crossbeam-channel = "0.5"
 crossbeam-utils = "0.8"
-simple-logging = "2.0.2"
-log = "0.4.17"
+simple-logging = "2.0"
+log = "0.4"
 thiserror = "1.0"
 color-eyre = "0.6"
 
 [dependencies.git2]
-version = "0.15"
+version = "0.18"
 default-features = false
 features = ["ssh", "https"]

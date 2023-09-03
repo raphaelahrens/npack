@@ -192,28 +192,12 @@ impl TaskManager {
 }
 
 fn helptags() {
-    match process::Command::new("vim")
-        .arg("--not-a-term")
+    process::Command::new("nvim")
         .arg("-c")
         .arg("silent! helptags ALL")
         .stdout(process::Stdio::null())
         .spawn()
-    {
-        Ok(_) => (),
-        Err(e) => {
-            if let std::io::ErrorKind::NotFound = e.kind() {
-                process::Command::new("nvim")
-                    .arg("--headless")
-                    .arg("-c")
-                    .arg("silent! helptags ALL")
-                    .stdout(process::Stdio::null())
-                    .spawn()
-                    .expect("Error opening nvim");
-            } else {
-                panic!("Somthing happened when calling vim!")
-            }
-        }
-    }
+        .expect("Error opening nvim");
 }
 
 fn setup_signal() -> io::Result<Receiver<()>> {
