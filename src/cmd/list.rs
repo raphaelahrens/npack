@@ -30,7 +30,7 @@ fn list_installed(category: &Option<String>, start: bool, opt: bool) -> Result<(
     };
 
     for p in packs.into_iter().filter(filter) {
-        println!("{}", p);
+        println!("{p}");
     }
     Ok(())
 }
@@ -41,7 +41,7 @@ fn list_detached(category: &Option<String>, start: bool, opt: bool) -> Result<()
 
     package::walk_packs(category, start, opt, |cate, option, name| {
         if !pack_names.contains(&name) {
-            println!("{}/{}/{}", cate, option, name);
+            println!("{cate}/{option}/{name}");
         }
     })
 }

@@ -6,6 +6,7 @@ use crate::Error;
 use crossbeam_channel::{bounded, select, Receiver};
 use crossbeam_utils::sync::WaitGroup;
 use signal_hook::iterator::Signals;
+use std::convert::TryFrom;
 use std::fs;
 use std::io;
 use std::process;
@@ -36,8 +37,9 @@ pub struct TaskManager {
 }
 
 impl TaskManager {
-    pub fn new(task_type: TaskType, thread_num: usize) -> TaskManager {
-        TaskManager {
+    #[must_use]
+    pub const fn new(task_type: TaskType, thread_num: usize) -> Self {
+        Self {
             task_type,
             packs: Vec::new(),
             thread_num,
@@ -53,12 +55,13 @@ impl TaskManager {
     where
         F: Fn(&Package) -> (Result<(), Error>, bool),
     {
-        let msg = format!(" [{}]", &pack.name);
-        let pos = msg.len() as u16;
-        echo::message(line, 0, &format!("    {} syncing", &msg));
-
         const MSG_MARGIN: u16 = 5;
         const SIGN_MARGIN: u16 = 3;
+        let msg = format!(" [{}]", &pack.name);
+        //TODO: why does this has t be u16?
+        let pos = u16::try_from(msg.len()).expect("msg.len to be less than u16::MAX");
+        echo::message(line, 0, &format!("    {} syncing", &msg));
+
 
         macro_rules! print_err {
             ($err:expr) => {
@@ -77,7 +80,7 @@ impl TaskManager {
         } else {
             if pack.build_command.is_some() {
                 echo::inline_message(line, MSG_MARGIN + pos, "building");
-                if let Err(e) = pack.try_build().map_err(|e| Error::build(format!("{}", e))) {
+                if let Err(e) = pack.try_build().map_err(|e| Error::build(format!("{e}"))) {
                     print_err!(e);
                 }
             }
@@ -126,7 +129,7 @@ impl TaskManager {
                     log::info!("pack {}", &pack.name);
                     let _wg = wg.clone();
                     {
-                        let mut p = pending.lock().unwrap();
+                        let mut p = pending.lock().expect("To get access to Lock");
                         log::info!("add to pending:{}", &pack.name);
                         p.push(pack.clone());
                     }
@@ -138,7 +141,7 @@ impl TaskManager {
                     thread::spawn(move || {
                         let index = echo::line();
                         if !Self::update(&pack, index, func) {
-                            let mut f = failures.lock().unwrap();
+                            let mut f = failures.lock().expect("To get access to Lock");
                             f.push(pack.name);
                         }
                         let _ = wtx.send(());
@@ -151,7 +154,7 @@ impl TaskManager {
                         }
                     }
                     {
-                        let mut p = pending.lock().unwrap();
+                        let mut p = pending.lock().expect("To get access to Lock");
                         log::info!("remove from pending: {}", &name);
                         p.retain(|x| x.name != name);
                     }
@@ -162,7 +165,7 @@ impl TaskManager {
             println!();
         }
 
-        for pack in self.packs.iter() {
+        for pack in &self.packs {
             let _ = tx.send(Some(pack.clone()));
         }
 
@@ -180,13 +183,13 @@ impl TaskManager {
         helptags();
 
         if let TaskType::Install = self.task_type {
-            for p in pending.lock().unwrap().iter() {
+            for p in pending.lock().expect("To get access to Lock").iter() {
                 log::info!("delete {:?}", p.path());
                 let _ = fs::remove_dir_all(p.path());
             }
         }
 
-        let failures = failures.lock().unwrap();
+        let failures = failures.lock().expect("To get access to Lock");
         Ok(failures.clone())
     }
 }

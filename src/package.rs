@@ -181,12 +181,12 @@ impl Package {
         } else {
             self.name.replace('/', "-")
         };
-        let fname = if name.ends_with(".vim") {
+        let name = if name.ends_with(".vim") {
             name
         } else {
             format!("{}.vim", &name)
         };
-        PACK_CONFIG_DIR.join(fname)
+        PACK_CONFIG_DIR.join(name)
     }
 
     pub fn repo(&self) -> (&str, &str) {
@@ -224,13 +224,13 @@ impl fmt::Display for Package {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let name = if self.opt { "opt" } else { "start" };
         let on = match self.load_command {
-            Some(ref c) => format!(" [Load on `{}`]", c),
+            Some(ref c) => format!(" [Load on `{c}`]"),
             None => "".to_string(),
         };
 
         let types = if !self.for_types.is_empty() {
             let types = self.for_types.join(",");
-            format!(" [For {}]", types)
+            format!(" [For {types}]")
         } else {
             "".to_string()
         };
@@ -245,7 +245,7 @@ impl fmt::Display for Package {
 pub fn fetch() -> Result<Vec<Package>> {
     if PACK_FILE.is_file() {
         fetch_from_packfile(&*PACK_FILE)
-            .map_err(|e| Error::PackFile(format!("Fail to parse packfile: {}", e)))
+            .map_err(|e| Error::PackFile(format!("Fail to parse packfile: {e}")))
     } else {
         Ok(vec![])
     }
@@ -292,47 +292,43 @@ pub fn update_pack_plugin(packs: &[Package]) -> Result<()> {
         fs::create_dir_all(&*PACK_PLUGIN_DIR)?;
     }
 
-    let mut f = File::create(PACK_PLUGIN_DIR.join(PACK_PLUGIN_FILE))?;
-    f.write_all(format!("{}\n\n", PLUGIN_HEADER).as_bytes())?;
+    let mut plugin_file = File::create(PACK_PLUGIN_DIR.join(PACK_PLUGIN_FILE))?;
+    plugin_file.write_all(format!("{PLUGIN_HEADER}\n\n").as_bytes())?;
 
     let mut buf = String::new();
-    for (p, path) in packs.iter().map(|x| (x, x.config_path())) {
+    for (pkg, path) in packs.iter().map(|x| (x, x.config_path())) {
+        dbg!(&path);
         buf.clear();
         let mut written = false;
 
-        if let Some(ref c) = p.load_command {
-            f.write_all(format!("\" {}\n", &p.name).as_bytes())?;
+        if let Some(ref cmd) = pkg.load_command {
+            plugin_file.write_all(format!("\" {}\n", &pkg.name).as_bytes())?;
             written = true;
-            let (_, repo) = p.repo();
+            let (_, repo) = pkg.repo();
             let msg = format!(
                 "command! -nargs=* -range -bang {cmd} packadd {repo} | \
-                 call s:do_cmd('{cmd}', \"<bang>\", <line1>, <line2>, <q-args>)\n\n",
-                cmd = c,
-                repo = repo
+                 call s:do_cmd('{cmd}', \"<bang>\", <line1>, <line2>, <q-args>)\n\n"
             );
-            f.write_all(msg.as_bytes())?;
+            plugin_file.write_all(msg.as_bytes())?;
         }
 
-        if !p.for_types.is_empty() {
+        if !pkg.for_types.is_empty() {
             if !written {
-                f.write_all(format!("\" {}\n", &p.name).as_bytes())?;
+                plugin_file.write_all(format!("\" {}\n", &pkg.name).as_bytes())?;
                 written = true;
             }
-            let (_, repo) = p.repo();
-            let msg = format!(
-                "autocmd FileType {} packadd {}\n\n",
-                p.for_types.join(","),
-                repo
-            );
-            f.write_all(msg.as_bytes())?;
+            let (_, repo) = pkg.repo();
+            let types = pkg.for_types.join(",");
+            let msg = format!("autocmd FileType {types} packadd {repo}\n\n");
+            plugin_file.write_all(msg.as_bytes())?;
         }
 
         if path.is_file() {
             File::open(&path)?.read_to_string(&mut buf)?;
             if !written {
-                f.write_all(format!("\" {}\n", &p.name).as_bytes())?;
+                plugin_file.write_all(format!("\" {}\n", &pkg.name).as_bytes())?;
             }
-            f.write_all(format!("{}\n", &buf).as_bytes())?;
+            plugin_file.write_all(format!("{}\n", &buf).as_bytes())?;
         }
     }
     Ok(())
@@ -364,9 +360,7 @@ where
 {
     read_dir(&PACK_DIR, |path, cate| {
         let is_match = category.as_ref().map_or(true, |c| *c == cate);
-        if !is_match {
-            Ok(())
-        } else {
+        if is_match {
             read_dir(path, |subpath, option| {
                 if (start && option != "start")
                     || (opt && option != "opt")
@@ -380,6 +374,8 @@ where
                     })
                 }
             })
+        } else {
+            Ok(())
         }
     })?;
     Ok(())

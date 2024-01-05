@@ -24,7 +24,7 @@ pub fn install_plugins(args: crate::cli::Install) -> Result<()> {
     let opt = args.on.is_some() || args.for_.is_some() || args.opt;
     let types = args
         .for_
-        .map(|e| e.split(',').map(|e| e.to_string()).collect::<Vec<String>>());
+        .map(|e| e.split(',').map(std::string::ToString::to_string).collect::<Vec<String>>());
 
     let plugins = Plugins {
         names: args.package,
@@ -66,16 +66,16 @@ pub fn install_plugins(args: crate::cli::Install) -> Result<()> {
             for mut pack in targets {
                 let having = match packs.iter_mut().find(|x| x.name == pack.name) {
                     Some(x) => {
-                        if !x.is_installed() {
+                        if x.is_installed() {
+                            pack.set_category(x.category.as_str());
+                            pack.set_opt(x.opt);
+                        } else {
                             x.set_category(pack.category.as_str());
                             x.set_opt(pack.opt);
                             x.set_types(pack.for_types.clone());
 
                             x.load_command = pack.load_command.clone();
                             x.build_command = pack.build_command.clone();
-                        } else {
-                            pack.set_category(x.category.as_str());
-                            pack.set_opt(x.opt);
                         }
                         true
                     }

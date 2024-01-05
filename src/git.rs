@@ -7,7 +7,7 @@ use std::path::Path;
 const LOCATION: &str = "https://github.com";
 
 fn github_url(name: &str) -> String {
-    format!("{}/{}", LOCATION, name)
+    format!("{LOCATION}/{name}")
 }
 
 fn fetch(repo: &Repository, name: &str) -> Result<()> {

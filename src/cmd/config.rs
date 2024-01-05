@@ -35,9 +35,8 @@ pub fn config(args: Config) -> Result<()> {
         Err(e) => {
             if e.kind() == ErrorKind::NotFound {
                 return Ok(());
-            } else {
-                return Err(Error::Io(e));
             }
+            return Err(Error::Io(e));
         }
         Ok(m) => m,
     };
