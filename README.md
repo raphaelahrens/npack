@@ -1,36 +1,13 @@
-pack
+npack
 ====
 
-Package manager for vim8.
-
-![demo](http://i.imgur.com/mhkRXPZ.gif)
+Package manager for neovim.
+It is a fork from pack
 
 Install
 -------
 
-Currently only macOS and Linux are supported and neovim is not supported.
-
-#### Use homebrew
-
-```bash
-# Add the pack tap
-$ brew tap maralla/pack
-
-# Install pack using brew.
-$ brew install pack
-```
-
-#### Without homebrew
-
-To install the already compiled binary, go to the [releases](https://github.com/maralla/pack/releases)
-page and download the proper compressed binary package:
-
-```bash
-$ v=v0.1.0
-$ os=x86_64-unknown-linux-gnu
-$ wget https://github.com/maralla/pack/releases/download/$v/pack-$v-$os.tar.gz
-$ tar -vxf pack-$v-$os.tar.gz
-```
+Currently only FreeBSD is supported
 
 Usage
 -----
@@ -51,7 +28,9 @@ set packpath+=$VIM_CONFIG_PATH
 #### `pack` command
 
 ```bash
+
 # Show general usage
+
 $ pack -h
 ```
 
@@ -61,27 +40,36 @@ $ pack -h
 $ pack help install
 
 # install plugins
+
+
 # pack install <github_user/github_repo>
+
 $ pack install maralla/completor.vim
 $ pack install maralla/completor.vim maralla/completor-neosnippet
 
 # install all plugins
+
 $ pack install
 
 # install optional plugin
+
 $ pack install altercation/vim-colors-solarized -o
 
 # install to a specific category
+
 $ pack install pangloss/vim-javascript -c lang
 
 # install a plugin for types
+
 $ pack install maralla/rope.vim --for python
 $ pack install mattn/emmet-vim --for html,jinja,xml
 
 # install a plugin loaded for a command
+
 $ pack install gregsexton/gitv --on Gitv
 
 # install a plugin and build after installed
+
 $ pack install Shougo/vimproc.vim --build 'make'
 ```
 
@@ -89,10 +77,18 @@ $ pack install Shougo/vimproc.vim --build 'make'
 
 ```bash
 $ pack config maralla/completor.vim
+
 # This command will open an editor, enter vim scripts as the config for the plugin
+
+
 # For example:
+
+
 #
+
+
 #   let g:completor_css_omni_trigger = '([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
+
 ```
 
 #### List installed plugins
