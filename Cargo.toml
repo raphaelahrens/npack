@@ -9,7 +9,7 @@ lazy_static = "1.4"
 yaml-rust = "0.4"
 walkdir = "2"
 termion = "2.0"
-num_cpus = "1.0"
+num_cpus = "1.16"
 clap = { version = "4.4", features = ["derive"] }
 dirs = "5.0"
 signal-hook = "0.3"
