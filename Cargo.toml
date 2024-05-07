@@ -1,7 +1,7 @@
 [package]
-name = "pack"
+name = "npack"
 version = "0.2.8"
-authors = ["maralla <maralla.ai@gmail.com>"]
+authors = ["maralla <maralla.ai@gmail.com>", "Raphael Ahrens<raphel.ahrens@googlemail.com"]
 edition = "2018"
 
 [dependencies]
