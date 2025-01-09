@@ -1,7 +1,7 @@
 use std::env;
 use clap::Parser;
-use pack::cli;
-use pack::cmd;
+use npack::cli;
+use npack::cmd;
 
 use color_eyre::eyre::Result;
 
