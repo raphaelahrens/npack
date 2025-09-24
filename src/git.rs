@@ -33,11 +33,38 @@ fn sync_repo(repo: &Repository, name: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn clone<P: AsRef<Path>>(name: &str, target: P) -> Result<()> {
+pub fn clone_recursive(url: &str, path: &Path, branch: &Option<String>) -> Result<git2::Repository> {
+    let mut builder = git2::build::RepoBuilder::new();
+    if let Some(branch_name) = branch {
+        builder.branch(branch_name);
+    }
+    let repo = builder.clone(url, path.as_ref())?;
+    
+    // Initialize submodules recursively (inlined)
+    fn init_submodules_recursive(repo: &Repository) -> Result<()> {
+        for mut submodule in repo.submodules()? {
+            submodule.init(false)?;
+            
+            submodule.update(true, None)?;
+            
+            // Recursively handle nested submodules
+            if let Ok(sub_repo) = submodule.open() {
+                init_submodules_recursive(&sub_repo)?;
+            }
+        }
+        
+        Ok(())
+    }
+    init_submodules_recursive(&repo)?;
+    Ok(repo)
+}
+
+pub fn clone(name: &str, target: &Path, branch: &Option<String>) -> Result<()> {
     let url = github_url(name);
-    let result = git2::Repository::clone_recurse(&url, &target);
-    if result.is_err() {
+    let result = clone_recursive(&url, target, branch);
+    if let Err(e) = result {
         fs::remove_dir_all(&target)?;
+        return Err(e.into());
     }
     Ok(())
 }

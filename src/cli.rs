@@ -65,6 +65,9 @@ pub struct Install  {
         /// Load this plugins for specific types
         #[arg(long, value_name="BUILD_CMD")]
         pub build: Option<String>,
+        /// Load this plugins for specific types
+        #[arg(long, value_name="BRANCH")]
+        pub branch: Option<String>,
         /// Installing packages concurrently
         #[arg(
             long,
@@ -73,7 +76,7 @@ pub struct Install  {
             value_parser=none_zeor_parser,
             )]
         pub threads: Option<usize>,
-        pub package: Vec<String>,
+        pub package: String,
     }
 
 #[derive(Args, Debug)]

@@ -46,6 +46,8 @@ pub struct Package {
     pub category: String,
     pub opt: bool,
     /// Load this package on this command
+    pub branch: Option<String>,
+    /// Load this package on this command
     pub load_command: Option<String>,
     /// Load this package for these types
     pub for_types: Vec<String>,
@@ -60,6 +62,7 @@ impl Package {
         Package {
             name: name.to_string(),
             category: category.to_string(),
+            branch: None,
             opt,
             load_command: None,
             for_types: Vec::new(),
@@ -84,6 +87,10 @@ impl Package {
         self.load_command = Some(cmd.to_string())
     }
 
+    pub fn set_branch(&mut self, branch_name: &str) {
+        self.branch = Some(branch_name.to_string())
+    }
+
     pub fn set_types(&mut self, types: Vec<String>) {
         self.for_types = types
     }
@@ -102,6 +109,7 @@ impl Package {
             .as_str()
             .map(|s| s.to_string())
             .ok_or(Error::Format)?;
+        let branch = doc["branch"].as_str().map(|s| s.to_string());
         let cmd = doc["on"].as_str().map(|s| s.to_string());
         let build = doc["build"].as_str().map(|s| s.to_string());
         let is_local = doc["local"].as_bool().unwrap_or(false);
@@ -121,6 +129,7 @@ impl Package {
             name,
             category,
             opt,
+            branch,
             load_command: cmd,
             for_types: types,
             build_command: build,
@@ -134,6 +143,9 @@ impl Package {
         doc.insert(Yaml::from_str("category"), Yaml::from_str(&self.category));
         doc.insert(Yaml::from_str("opt"), Yaml::Boolean(self.opt));
         doc.insert(Yaml::from_str("local"), Yaml::Boolean(self.local));
+        if let Some(ref c) = self.branch {
+            doc.insert(Yaml::from_str("branch"), Yaml::from_str(c));
+        }
         if let Some(ref c) = self.load_command {
             doc.insert(Yaml::from_str("on"), Yaml::from_str(c));
         }
@@ -297,7 +309,6 @@ pub fn update_pack_plugin(packs: &[Package]) -> Result<()> {
 
     let mut buf = String::new();
     for (pkg, path) in packs.iter().map(|x| (x, x.config_path())) {
-        dbg!(&path);
         buf.clear();
         let mut written = false;
 

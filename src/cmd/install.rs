@@ -8,7 +8,7 @@ use std::os::unix::fs::symlink;
 use std::path::Path;
 
 struct Plugins {
-    names: Vec<String>,
+    names: String,
     category: String,
     opt: bool,
     on: Option<String>,
@@ -16,6 +16,7 @@ struct Plugins {
     build: Option<String>,
     threads: usize,
     local: bool,
+    branch: Option<String>
 }
 
 pub fn install_plugins(args: crate::cli::Install) -> Result<()> {
@@ -35,6 +36,7 @@ pub fn install_plugins(args: crate::cli::Install) -> Result<()> {
         build: args.build,
         threads,
         local: args.local,
+        branch: args.branch
     };
     let mut packs = package::fetch()?;
     {
@@ -45,9 +47,9 @@ pub fn install_plugins(args: crate::cli::Install) -> Result<()> {
                 manager.add(pack.clone());
             }
         } else {
-            let targets = plugins.names.iter().map(|n| {
-                let mut p = Package::new(n, &plugins.category, plugins.opt);
-                p.local = if Path::new(n).is_dir() {
+            let mut pack = {
+                let mut p = Package::new(&plugins.names, &plugins.category, plugins.opt);
+                p.local = if Path::new(&plugins.names).is_dir() {
                     true
                 } else {
                     plugins.local
@@ -61,31 +63,32 @@ pub fn install_plugins(args: crate::cli::Install) -> Result<()> {
                 if let Some(ref c) = plugins.build {
                     p.set_build_command(c);
                 }
-                p
-            });
-            for mut pack in targets {
-                let having = match packs.iter_mut().find(|x| x.name == pack.name) {
-                    Some(x) => {
-                        if x.is_installed() {
-                            pack.set_category(x.category.as_str());
-                            pack.set_opt(x.opt);
-                        } else {
-                            x.set_category(pack.category.as_str());
-                            x.set_opt(pack.opt);
-                            x.set_types(pack.for_types.clone());
-
-                            x.load_command = pack.load_command.clone();
-                            x.build_command = pack.build_command.clone();
-                        }
-                        true
-                    }
-                    None => false,
-                };
-                if !having {
-                    packs.push(pack.clone());
+                if let Some(ref c) = plugins.branch {
+                    p.set_branch(c);
                 }
-                manager.add(pack);
+                p
+            };
+            let having = match packs.iter_mut().find(|x| x.name == pack.name) {
+                Some(x) => {
+                    if x.is_installed() {
+                        pack.set_category(x.category.as_str());
+                        pack.set_opt(x.opt);
+                    } else {
+                        x.set_category(pack.category.as_str());
+                        x.set_opt(pack.opt);
+                        x.set_types(pack.for_types.clone());
+
+                        x.load_command = pack.load_command.clone();
+                        x.build_command = pack.build_command.clone();
+                    }
+                    true
+                }
+                None => false,
+            };
+            if !having {
+                packs.push(pack.clone());
             }
+            manager.add(pack);
         }
 
         for fail in manager.run(install_plugin)? {
@@ -122,6 +125,6 @@ fn do_install(pack: &Package) -> Result<()> {
             Ok(())
         }
     } else {
-        git::clone(&pack.name, &path)
+        git::clone(&pack.name, &path, &pack.branch)
     }
 }
