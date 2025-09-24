@@ -12,71 +12,71 @@ Currently only FreeBSD is supported
 Usage
 -----
 
-All tasks should be done through `pack` command. `pack` will create a file named
+All tasks should be done through `npack` command. `npack` will create a file named
 *packfile* under `$VIM_CONFIG_PATH/.pack/` and all plugins are tracked in the file.
 Plugin config files are stored under `$VIM_CONFIG_PATH/.pack/`. The config files
 will be concatenated and stored under `$VIM_CONFIG_PATH/plugin/_pack.vim` automatically.
-These files are all managed by `pack`. Never change the files manually.
+These files are all managed by `npack`. Never change the files manually.
 
-By default, if `$VIM_CONFIG_PATH` is not set, `pack` will create and install all files under `~/.vim`(default vim packagepath).
+By default, if `$VIM_CONFIG_PATH` is not set, `npack` will create and install all files under `~/.vim`(default vim packagepath).
 If using custom location by setting `$VIM_CONFIG_PATH` variable, you need to add the following at the top of your `.vimrc`:
 
 ```
 set packpath+=$VIM_CONFIG_PATH
 ```
 
-#### `pack` command
+#### `npack` command
 
 ```bash
 
 # Show general usage
 
-$ pack -h
+$ npack -h
 ```
 
 #### Install plugins
 
 ```bash
-$ pack help install
+$ npack help install
 
 # install plugins
 
 
-# pack install <github_user/github_repo>
+# npack install <github_user/github_repo>
 
-$ pack install maralla/completor.vim
-$ pack install maralla/completor.vim maralla/completor-neosnippet
+$ npack install maralla/completor.vim
+$ npack install maralla/completor.vim maralla/completor-neosnippet
 
 # install all plugins
 
-$ pack install
+$ npack install
 
 # install optional plugin
 
-$ pack install altercation/vim-colors-solarized -o
+$ npack install altercation/vim-colors-solarized -o
 
 # install to a specific category
 
-$ pack install pangloss/vim-javascript -c lang
+$ npack install pangloss/vim-javascript -c lang
 
 # install a plugin for types
 
-$ pack install maralla/rope.vim --for python
-$ pack install mattn/emmet-vim --for html,jinja,xml
+$ npack install maralla/rope.vim --for python
+$ npack install mattn/emmet-vim --for html,jinja,xml
 
 # install a plugin loaded for a command
 
-$ pack install gregsexton/gitv --on Gitv
+$ npack install gregsexton/gitv --on Gitv
 
 # install a plugin and build after installed
 
-$ pack install Shougo/vimproc.vim --build 'make'
+$ npack install Shougo/vimproc.vim --build 'make'
 ```
 
 #### Config a plugin
 
 ```bash
-$ pack config maralla/completor.vim
+$ npack config maralla/completor.vim
 
 # This command will open an editor, enter vim scripts as the config for the plugin
 
@@ -94,25 +94,25 @@ $ pack config maralla/completor.vim
 #### List installed plugins
 
 ```bash
-$ pack list
+$ npack list
 ```
 
 #### Uninstall plugins
 
 Simple uninstall a plugin will not remove plugin config file. To remove a plugin
-config file use `pack uninstall <plugin> -a` or `pack config <plugin> -d`.
+config file use `npack uninstall <plugin> -a` or `npack config <plugin> -d`.
 
 ```bash
-$ pack uninstall maralla/completor.vim
-$ pack uninstall maralla/completor.vim maralla/completor-neosnippet
+$ npack uninstall maralla/completor.vim
+$ npack uninstall maralla/completor.vim maralla/completor-neosnippet
 ```
 
 #### Update plugins
 
 ```bash
-$ pack update
-$ pack update maralla/completor.vim
-$ pack update maralla/completor.vim maralla/completor-neosnippet
+$ npack update
+$ npack update maralla/completor.vim
+$ npack update maralla/completor.vim maralla/completor-neosnippet
 ```
 
 Misc
