@@ -254,6 +254,9 @@ impl fmt::Display for Package {
     }
 }
 
+/**
+ * Load the default packfile if one is available.
+ */
 pub fn fetch() -> Result<Vec<Package>> {
     if PACK_FILE.is_file() {
         fetch_from_packfile(&*PACK_FILE)
@@ -263,6 +266,9 @@ pub fn fetch() -> Result<Vec<Package>> {
     }
 }
 
+/**
+ * Load the packfile and fetch all the stored packages
+ */
 fn fetch_from_packfile<P: AsRef<Path>>(packfile: P) -> Result<Vec<Package>> {
     let mut data = String::new();
     File::open(packfile.as_ref())?.read_to_string(&mut data)?;

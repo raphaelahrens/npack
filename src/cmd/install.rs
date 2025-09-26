@@ -12,6 +12,7 @@ struct Plugins {
     category: String,
     opt: bool,
     on: Option<String>,
+    after_update: Option<String>,
     types: Option<Vec<String>>,
     build: Option<String>,
     threads: usize,
@@ -32,6 +33,7 @@ pub fn install_plugins(args: crate::cli::Install) -> Result<()> {
         category: args.category,
         opt,
         on: args.on,
+        after_update: args.after_update,
         types,
         build: args.build,
         threads,
@@ -41,7 +43,8 @@ pub fn install_plugins(args: crate::cli::Install) -> Result<()> {
     let mut packs = package::fetch()?;
     {
         let mut manager = TaskManager::new(TaskType::Install, plugins.threads);
-
+        
+        // If no package names have been given as an argument try to install all plugins.
         if plugins.names.is_empty() {
             for pack in &packs {
                 manager.add(pack.clone());
@@ -107,7 +110,7 @@ fn install_plugin(pack: &Package) -> (Result<()>, bool) {
     let status = match res {
         Err(Error::PluginInstalled(_)) => true,
         Err(_) => false,
-        _ => true,
+        Ok(()) => true,
     };
     (res, status)
 }

@@ -59,6 +59,10 @@ pub struct Install  {
         /// Command for loading the plugins
         #[arg(long, value_name="LOAD_CMD")]
         pub on: Option<String>,
+        /// Command to run after an update
+        #[arg(long, value_name="UPDATE_CMD")]
+        pub after_update: Option<String>,
+        /// Load this plugins for specific types
         /// Load this plugins for specific types
         #[arg(long = "for", value_name="TYPES")]
         pub for_: Option<String>,

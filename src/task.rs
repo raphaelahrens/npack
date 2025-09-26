@@ -9,6 +9,7 @@ use signal_hook::iterator::Signals;
 use std::convert::TryFrom;
 use std::fs;
 use std::io;
+use std::io::Write;
 use std::process;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -194,13 +195,28 @@ impl TaskManager {
     }
 }
 
+const NVIM_CMDS: &str = "
+:helptags ALL
+:TSUpdate
+:q
+";
+
 fn helptags() {
-    process::Command::new("nvim")
-        .arg("-c")
-        .arg("silent! helptags ALL")
-        .stdout(process::Stdio::null())
+    let mut child = process::Command::new("nvim")
+        .arg("-s")
+        .arg("-")
+        .stdout(process::Stdio::piped())
+        .stdin(process::Stdio::piped())
         .spawn()
         .expect("Error opening nvim");
+
+        let mut stdin = child.stdin.take().expect("Failed to open stdin");
+        std::thread::spawn(move || {
+            stdin.write_all(NVIM_CMDS.as_bytes()).expect("Failed to write to stdin");
+        });
+        let output = child.wait_with_output().expect("Failed to read stdout");
+        dbg!(output);
+
 }
 
 fn setup_signal() -> io::Result<Receiver<()>> {
