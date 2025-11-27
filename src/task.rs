@@ -215,7 +215,6 @@ fn helptags() {
             stdin.write_all(NVIM_CMDS.as_bytes()).expect("Failed to write to stdin");
         });
         let output = child.wait_with_output().expect("Failed to read stdout");
-        dbg!(output);
 
 }
 

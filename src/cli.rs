@@ -80,7 +80,7 @@ pub struct Install  {
             value_parser=none_zeor_parser,
             )]
         pub threads: Option<usize>,
-        pub package: String,
+        pub package: Option<String>,
     }
 
 #[derive(Args, Debug)]
