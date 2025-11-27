@@ -376,8 +376,7 @@ where
     F: Fn(&str, &str, &str),
 {
     read_dir(&PACK_DIR, |path, cate| {
-        let is_match = category.as_ref().map_or(true, |c| *c == cate);
-        if is_match {
+        if category.as_ref().is_none_or(|c| *c == cate) {
             read_dir(path, |subpath, option| {
                 if (start && option != "start")
                     || (opt && option != "opt")

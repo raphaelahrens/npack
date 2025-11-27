@@ -63,8 +63,8 @@ pub fn clone(name: &str, target: &Path, branch: &Option<String>) -> Result<()> {
     let url = github_url(name);
     let result = clone_recursive(&url, target, branch);
     if let Err(e) = result {
-        fs::remove_dir_all(&target)?;
-        return Err(e.into());
+        fs::remove_dir_all(target)?;
+        return Err(e);
     }
     Ok(())
 }
